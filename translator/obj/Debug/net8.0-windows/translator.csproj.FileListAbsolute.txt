@@ -1,0 +1,14 @@
+C:\nowork\translator\translator\bin\Debug\net8.0-windows\translator.exe
+C:\nowork\translator\translator\bin\Debug\net8.0-windows\translator.deps.json
+C:\nowork\translator\translator\bin\Debug\net8.0-windows\translator.runtimeconfig.json
+C:\nowork\translator\translator\bin\Debug\net8.0-windows\translator.dll
+C:\nowork\translator\translator\bin\Debug\net8.0-windows\translator.pdb
+C:\nowork\translator\translator\obj\Debug\net8.0-windows\translator.GeneratedMSBuildEditorConfig.editorconfig
+C:\nowork\translator\translator\obj\Debug\net8.0-windows\translator.AssemblyInfoInputs.cache
+C:\nowork\translator\translator\obj\Debug\net8.0-windows\translator.AssemblyInfo.cs
+C:\nowork\translator\translator\obj\Debug\net8.0-windows\translator.csproj.CoreCompileInputs.cache
+C:\nowork\translator\translator\obj\Debug\net8.0-windows\translator.dll
+C:\nowork\translator\translator\obj\Debug\net8.0-windows\refint\translator.dll
+C:\nowork\translator\translator\obj\Debug\net8.0-windows\translator.pdb
+C:\nowork\translator\translator\obj\Debug\net8.0-windows\translator.genruntimeconfig.cache
+C:\nowork\translator\translator\obj\Debug\net8.0-windows\ref\translator.dll

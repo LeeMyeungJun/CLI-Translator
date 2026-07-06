@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -52,7 +53,7 @@ namespace CmdTranslator
 
         public TranslatorForm()
         {
-            this.Text = "CLI ¹Ì·¯¸µ ¹ø¿ª±â (°¡½Ã ¿µ¿ª ¿Ïº® µ¿±âÈ­)"; this.Size = new Size(1000, 750);
+            this.Text = "CLI ë¯¸ëŸ¬ë§ ë²ˆì—­ê¸° (ê°€ì‹œ ì˜ì—­ ì™„ë²½ ë™ê¸°í™”)"; this.Size = new Size(1000, 750);
             SetupUI(); LoadProcs();
             timer = new System.Windows.Forms.Timer { Interval = 1000 }; timer.Tick += Update;
         }
@@ -61,10 +62,10 @@ namespace CmdTranslator
         {
             Panel top = new Panel { Dock = DockStyle.Top, Height = 40 };
             cbProcs = new ComboBox { Width = 400, Left = 10, Top = 10 };
-            Button btnConn = new Button { Text = "¿¬°á ½ÃÀÛ", Left = 420, Top = 9 }; btnConn.Click += Connect;
+            Button btnConn = new Button { Text = "ì—°ê²° ì‹œì‘", Left = 420, Top = 9 }; btnConn.Click += Connect;
 
-            // ¡Ú ÀÚµ¿ ÁÙ¹Ù²Ş Ã¼Å©¹Ú½º Ãß°¡
-            CheckBox chkWordWrap = new CheckBox { Text = "ÀÚµ¿ ÁÙ¹Ù²Ş", Left = 510, Top = 13, Width = 100, ForeColor = Color.Black };
+            // â˜… ìë™ ì¤„ë°”ê¿ˆ ì²´í¬ë°•ìŠ¤ ì¶”ê°€
+            CheckBox chkWordWrap = new CheckBox { Text = "ìë™ ì¤„ë°”ê¿ˆ", Left = 510, Top = 13, Width = 100, ForeColor = Color.Black };
             chkWordWrap.CheckedChanged += (s, e) =>
             {
                 txtOutput.WordWrap = chkWordWrap.Checked;
@@ -73,14 +74,15 @@ namespace CmdTranslator
 
             top.Controls.Add(cbProcs); top.Controls.Add(btnConn); top.Controls.Add(chkWordWrap); this.Controls.Add(top);
 
-            // ¡Ú WordWrap = false ¼³Á¤ ¹× °¡·Î/¼¼·Î ½ºÅ©·Ñ¹Ù(ScrollBars.Both) ±âº» È°¼ºÈ­
+            // â˜… WordWrap = false ì„¤ì • ë° ê°€ë¡œ/ì„¸ë¡œ ìŠ¤í¬ë¡¤ë°”(ScrollBars.Both) ê¸°ë³¸ í™œì„±í™”
             txtOutput = new TextBox { Dock = DockStyle.Fill, Multiline = true, ReadOnly = true, Font = new Font("GulimChe", 10f), BackColor = Color.Black, ForeColor = Color.White, WordWrap = false, ScrollBars = ScrollBars.Both };
             this.Controls.Add(txtOutput);
 
             Panel bottom = new Panel { Dock = DockStyle.Bottom, Height = 40 };
             txtInput = new TextBox { Width = 700, Left = 10, Top = 10 };
-            Button btnSend = new Button { Text = "Àü¼Û", Left = 720, Top = 9 }; btnSend.Click += Send;
+            Button btnSend = new Button { Text = "ì „ì†¡", Left = 720, Top = 9 }; btnSend.Click += Send;
             bottom.Controls.Add(txtInput); bottom.Controls.Add(btnSend); this.Controls.Add(bottom);
+            this.AcceptButton = btnSend;
         }
 
         private void LoadProcs()
@@ -88,7 +90,7 @@ namespace CmdTranslator
             cbProcs.Items.Clear();
             foreach (var p in Process.GetProcessesByName("cmd"))
             {
-                string title = "¸í·É ÇÁ·ÒÇÁÆ®"; FreeConsole();
+                string title = "ëª…ë ¹ í”„ë¡¬í”„íŠ¸"; FreeConsole();
                 if (AttachConsole((uint)p.Id)) { StringBuilder b = new StringBuilder(256); GetConsoleTitle(b, 256); title = b.ToString(); FreeConsole(); }
                 cbProcs.Items.Add(new { Text = $"PID:{p.Id} - {title}", Value = (uint)p.Id });
             }
@@ -107,7 +109,7 @@ namespace CmdTranslator
         {
             string cmd = txtInput.Text;
             if (string.IsNullOrWhiteSpace(cmd)) return;
-            if (Regex.IsMatch(cmd, @"[°¡-ÆR]")) cmd = await Translate(cmd, "ko", "en");
+            if (Regex.IsMatch(cmd, @"[ê°€-í£]")) cmd = await Translate(cmd, "ko", "en");
 
             IntPtr hIn = GetStdHandle(STD_INPUT_HANDLE);
             List<INPUT_RECORD> recs = new List<INPUT_RECORD>();
@@ -118,31 +120,38 @@ namespace CmdTranslator
 
         private INPUT_RECORD CreateKey(char c, int down) => new INPUT_RECORD { EventType = 1, KeyEvent = new KEY_EVENT_RECORD { bKeyDown = down, wRepeatCount = 1, UnicodeChar = c } };
 
+        private bool isUpdating = false;
+
         private async void Update(object s, EventArgs e)
         {
-            string cur = ReadConsoleGrid(consoleHandle);
-            if (cur == lastText) return;
-            lastText = cur;
-
-            string[] lines = cur.Split('\n');
-            StringBuilder outSb = new StringBuilder();
-
-            // ¡Ú ÆĞµù(¿©¹é) ¹®Á¦ ¿Ïº® ÇØ°á ¡Ú
-            // ±ÛÀÚ°¡ ÃµÀå¿¡ µü ºÙ¾î¼­ Àß·Á º¸ÀÌÁö ¾Êµµ·Ï, ¸Ç À§¿¡ ºó ÁÙÀ» ÇÏ³ª Ãß°¡ÇØ¼­ ÅØ½ºÆ®¸¦ ¾Æ·¡·Î ³»¸³´Ï´Ù.
-            // ´õ ³»¸®°í ½ÍÀ¸½Ã¸é outSb.AppendLine(); À» ÇÑ ¹ø ´õ ½áÁÖ½Ã¸é µË´Ï´Ù!
-            outSb.AppendLine();
-            outSb.AppendLine();
-            outSb.AppendLine();
-            outSb.AppendLine();
-
-            foreach (var line in lines)
+            if (isUpdating) return; // ponytail: ì´ì „ ê°±ì‹ ì´ ì•„ì§ ë²ˆì—­ ì¤‘ì´ë©´ ê²¹ì³ ëŒë¦¬ì§€ ì•ŠìŒ
+            isUpdating = true;
+            try
             {
-                // ¾ç¿·À¸·Îµµ ³Ê¹« µü ºÙÁö ¾Ê°Ô ¾Õ¿¡ ¶ç¾î¾²±â(°ø¹é)¸¦ »ìÂ¦ Ãß°¡ÇØ¼­ µé¿©¾²±â ÇØÁİ´Ï´Ù.
-                string processed = await ProcessLine(line);
-                outSb.AppendLine("  " + processed);
-            }
+                string cur = ReadConsoleGrid(consoleHandle);
+                if (cur == lastText) return;
+                lastText = cur;
 
-            txtOutput.Text = outSb.ToString();
+                string[] lines = cur.Split('\n');
+                // ì¤„ë§ˆë‹¤ ìˆœì°¨ ëŒ€ê¸°í•˜ë˜ ê²ƒì„ ë³‘ë ¬ ì‹¤í–‰ìœ¼ë¡œ ë³€ê²½ (Nì¤„ * ì™•ë³µì‹œê°„ -> 1íšŒ ì™•ë³µì‹œê°„)
+                string[] processed = await Task.WhenAll(lines.Select(ProcessLine));
+
+                StringBuilder outSb = new StringBuilder();
+
+                // â˜… íŒ¨ë”©(ì—¬ë°±) ë¬¸ì œ ì™„ë²½ í•´ê²° â˜…
+                // ê¸€ìê°€ ì²œì¥ì— ë”± ë¶™ì–´ì„œ ì˜ë ¤ ë³´ì´ì§€ ì•Šë„ë¡, ë§¨ ìœ„ì— ë¹ˆ ì¤„ì„ í•˜ë‚˜ ì¶”ê°€í•´ì„œ í…ìŠ¤íŠ¸ë¥¼ ì•„ë˜ë¡œ ë‚´ë¦½ë‹ˆë‹¤.
+                // ë” ë‚´ë¦¬ê³  ì‹¶ìœ¼ì‹œë©´ outSb.AppendLine(); ì„ í•œ ë²ˆ ë” ì¨ì£¼ì‹œë©´ ë©ë‹ˆë‹¤!
+                outSb.AppendLine();
+                outSb.AppendLine();
+                outSb.AppendLine();
+                outSb.AppendLine();
+
+                foreach (var p in processed)
+                    outSb.AppendLine("  " + p); // ì–‘ì˜†ìœ¼ë¡œë„ ë„ˆë¬´ ë”± ë¶™ì§€ ì•Šê²Œ ë“¤ì—¬ì“°ê¸°
+
+                txtOutput.Text = outSb.ToString();
+            }
+            finally { isUpdating = false; }
         }
         private async Task<string> ProcessLine(string line)
         {
@@ -155,7 +164,7 @@ namespace CmdTranslator
             if (cache.ContainsKey(cleanLine)) return cache[cleanLine];
 
             string trans;
-            if (cleanLine.Contains("|") || cleanLine.Contains("¦¢")) trans = await TranslateTable(cleanLine);
+            if (cleanLine.Contains("|") || cleanLine.Contains("â”‚")) trans = await TranslateTable(cleanLine);
             else trans = await Translate(cleanLine, "en", "ko");
 
             cache[cleanLine] = trans;
@@ -168,19 +177,19 @@ namespace CmdTranslator
             StringBuilder sb = new StringBuilder();
 
             // =========================================================
-            // ¡å ¿©±â¼­ºÎÅÍ ¼öÄ¡¸¦ Á÷Á¢ Á¶Á¤ÇÏ½Ã¸é µË´Ï´Ù! ¡å
+            // â–¼ ì—¬ê¸°ì„œë¶€í„° ìˆ˜ì¹˜ë¥¼ ì§ì ‘ ì¡°ì •í•˜ì‹œë©´ ë©ë‹ˆë‹¤! â–¼
 
-            // 1. À§·Î ¸î ÁÙ±îÁö ³Ë³ËÇÏ°Ô ÀĞ¾î¿ÃÁö ¼³Á¤ÇÕ´Ï´Ù. (±âº»°ª 100)
-            // À­ºÎºĞÀÌ Àß¸°´Ù¸é ÀÌ ¼ıÀÚ¸¦ 150, 200, 300 µîÀ¸·Î È® ´Ã·ÁÁÖ¼¼¿ä!
+            // 1. ìœ„ë¡œ ëª‡ ì¤„ê¹Œì§€ ë„‰ë„‰í•˜ê²Œ ì½ì–´ì˜¬ì§€ ì„¤ì •í•©ë‹ˆë‹¤. (ê¸°ë³¸ê°’ 100)
+            // ìœ—ë¶€ë¶„ì´ ì˜ë¦°ë‹¤ë©´ ì´ ìˆ«ìë¥¼ 150, 200, 300 ë“±ìœ¼ë¡œ í™• ëŠ˜ë ¤ì£¼ì„¸ìš”!
             int readLines = 500;
 
-            // 2. È­¸éÀÇ ¸Ç ¾Æ·§ºÎºĞ(Bottom)°ú Ä¿¼­ À§Ä¡ Áß ´õ ¾Æ·¡ÂÊÀ» ±âÁØÁ¡(³¡Á¡)À¸·Î ¾ÈÀüÇÏ°Ô Àâ½À´Ï´Ù.
+            // 2. í™”ë©´ì˜ ë§¨ ì•„ë«ë¶€ë¶„(Bottom)ê³¼ ì»¤ì„œ ìœ„ì¹˜ ì¤‘ ë” ì•„ë˜ìª½ì„ ê¸°ì¤€ì (ëì )ìœ¼ë¡œ ì•ˆì „í•˜ê²Œ ì¡ìŠµë‹ˆë‹¤.
             short endY = Math.Max(csbi.srWindow.Bottom, csbi.dwCursorPosition.Y);
 
-            // 3. ³¡Á¡À¸·ÎºÎÅÍ readLines ¸¸Å­ À§·Î ÂŞ¿í ²ø¾î¿Ã·Á¼­ ½ÃÀÛÁ¡(startY)À» Àâ½À´Ï´Ù.
+            // 3. ëì ìœ¼ë¡œë¶€í„° readLines ë§Œí¼ ìœ„ë¡œ ì­ˆìš± ëŒì–´ì˜¬ë ¤ì„œ ì‹œì‘ì (startY)ì„ ì¡ìŠµë‹ˆë‹¤.
             short startY = (short)Math.Max(0, endY - readLines);
 
-            // ¡ã ¿©±â±îÁö ¡ã
+            // â–² ì—¬ê¸°ê¹Œì§€ â–²
             // =========================================================
 
             for (short y = startY; y <= endY; y++)
@@ -189,15 +198,15 @@ namespace CmdTranslator
                 ReadConsoleOutputCharacter(handle, buf, (uint)csbi.dwSize.X, new COORD { X = 0, Y = y }, out uint charsRead);
 
                 string l = new string(buf, 0, (int)charsRead).TrimEnd();
-                sb.AppendLine(l); // ºó ÁÙµµ ¿øº» ·¹ÀÌ¾Æ¿ô À¯Áö¸¦ À§ÇØ Æ÷ÇÔ
+                sb.AppendLine(l); // ë¹ˆ ì¤„ë„ ì›ë³¸ ë ˆì´ì•„ì›ƒ ìœ ì§€ë¥¼ ìœ„í•´ í¬í•¨
             }
 
-            return sb.ToString().TrimEnd(); // ¸¶Áö¸· ºÒÇÊ¿äÇÑ ÁÙ¹Ù²Ş¸¸ Á¦°Å
+            return sb.ToString().TrimEnd(); // ë§ˆì§€ë§‰ ë¶ˆí•„ìš”í•œ ì¤„ë°”ê¿ˆë§Œ ì œê±°
         }
 
         private async Task<string> TranslateTable(string row)
         {
-            char sep = row.Contains("¦¢") ? '¦¢' : '|';
+            char sep = row.Contains("â”‚") ? 'â”‚' : '|';
             string[] cells = row.Split(sep);
 
             for (int i = 0; i < cells.Length; i++)
@@ -234,8 +243,11 @@ namespace CmdTranslator
             {
                 string url = $"https://translate.googleapis.com/translate_a/single?client=gtx&sl={sl}&tl={tl}&dt=t&q={Uri.EscapeDataString(text)}";
                 string res = await http.GetStringAsync(url);
-                string tr = Regex.Match(res, "\"(.*?)\"").Groups[1].Value;
-                return tr.Replace("\\n", "\r\n").Replace("\\\"", "\"").Replace("\\u003c", "<").Replace("\\u003e", ">");
+                using var doc = JsonDocument.Parse(res);
+                var sb = new StringBuilder();
+                foreach (var segment in doc.RootElement[0].EnumerateArray())
+                    sb.Append(segment[0].GetString());
+                return sb.ToString();
             }
             catch { return text; }
         }

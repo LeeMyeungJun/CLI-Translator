@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Net.Http;
@@ -44,18 +45,19 @@ namespace CmdTranslator
 
         [StructLayout(LayoutKind.Explicit)] public struct INPUT_RECORD { [FieldOffset(0)] public ushort EventType; [FieldOffset(4)] public KEY_EVENT_RECORD KeyEvent; }
         [StructLayout(LayoutKind.Explicit, CharSet = CharSet.Unicode)] public struct KEY_EVENT_RECORD { [FieldOffset(0)] public int bKeyDown; [FieldOffset(4)] public ushort wRepeatCount; [FieldOffset(6)] public ushort wVirtualKeyCode; [FieldOffset(8)] public ushort wVirtualScanCode; [FieldOffset(10)] public char UnicodeChar; [FieldOffset(12)] public uint dwControlKeyState; }
-        [DllImport("kernel32.dll")] static extern bool WriteConsoleInput(IntPtr h, INPUT_RECORD[] b, uint n, out uint w);
+        [DllImport("kernel32.dll", EntryPoint = "WriteConsoleInputW", CharSet = CharSet.Unicode)] static extern bool WriteConsoleInput(IntPtr h, INPUT_RECORD[] b, uint n, out uint w);
 
         private ComboBox cbProcs; private TextBox txtOutput, txtInput; private System.Windows.Forms.Timer timer;
         private IntPtr consoleHandle; private string lastText = "";
         private Dictionary<string, string> cache = new Dictionary<string, string>();
         private static readonly HttpClient http = new HttpClient();
+        private static readonly SemaphoreSlim translateThrottle = new SemaphoreSlim(2); // ponytail: 동시 요청 수를 제한해 구글 봇 차단(302) 유발 가능성을 낮춤
 
         public TranslatorForm()
         {
             this.Text = "CLI 미러링 번역기 (가시 영역 완벽 동기화)"; this.Size = new Size(1000, 750);
             SetupUI(); LoadProcs();
-            timer = new System.Windows.Forms.Timer { Interval = 1000 }; timer.Tick += Update;
+            timer = new System.Windows.Forms.Timer { Interval = 2500 }; timer.Tick += Update; // ponytail: 1초->2.5초, 요청 빈도를 낮춰 구글 봇 차단 유발을 줄임
         }
 
         private void SetupUI()
@@ -239,6 +241,7 @@ namespace CmdTranslator
 
         private async Task<string> Translate(string text, string sl, string tl)
         {
+            await translateThrottle.WaitAsync();
             try
             {
                 string url = $"https://translate.googleapis.com/translate_a/single?client=gtx&sl={sl}&tl={tl}&dt=t&q={Uri.EscapeDataString(text)}";
@@ -250,6 +253,7 @@ namespace CmdTranslator
                 return sb.ToString();
             }
             catch { return text; }
+            finally { translateThrottle.Release(); }
         }
     }
 }

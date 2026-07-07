@@ -9,6 +9,12 @@
     {
       "AbsoluteMoniker": "D:0:0:{DF0E8D85-9684-47CC-B786-A56130C94D29}|translator\\translator.csproj|c:\\nowork\\cli_translator\\translator\\translator.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
       "RelativeMoniker": "D:0:0:{DF0E8D85-9684-47CC-B786-A56130C94D29}|translator\\translator.csproj|solutionrelative:translator\\translator.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\nowork\\git_AtlasUiEditor\\AtlasUiEditor\\Atlas.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\nowork\\littlepuppy\\convert\\1.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
     }
   ],
   "DocumentGroupContainers": [
@@ -32,9 +38,10 @@
               "RelativeDocumentMoniker": "translator\\translator.csproj",
               "ToolTip": "C:\\nowork\\cli_translator\\translator\\translator.csproj",
               "RelativeToolTip": "translator\\translator.csproj",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAAKAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAAiAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
-              "WhenOpened": "2026-07-03T02:20:00.052Z"
+              "WhenOpened": "2026-07-03T02:20:00.052Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
@@ -44,10 +51,56 @@
               "RelativeDocumentMoniker": "translator\\Program.cs",
               "ToolTip": "C:\\nowork\\cli_translator\\translator\\Program.cs",
               "RelativeToolTip": "translator\\Program.cs",
-              "ViewState": "AgIAAEgAAAAAAAAAAAASwFAAAAAuAAAAAAAAAA==",
+              "ViewState": "AgIAAD8AAAAAAAAAAAAEwF8AAABjAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-07-03T02:19:47.171Z",
               "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "FloatingWindowState": {
+        "Id": "acba072d-ec05-427d-bed6-ea3eb41added",
+        "Display": 0,
+        "X": 258,
+        "Y": 926,
+        "Width": 1488,
+        "Height": 1122,
+        "WindowState": 0
+      },
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "Atlas.json",
+              "DocumentMoniker": "C:\\nowork\\git_AtlasUiEditor\\AtlasUiEditor\\Atlas.json",
+              "RelativeDocumentMoniker": "..\\git_AtlasUiEditor\\AtlasUiEditor\\Atlas.json",
+              "ToolTip": "C:\\nowork\\git_AtlasUiEditor\\AtlasUiEditor\\Atlas.json",
+              "RelativeToolTip": "..\\git_AtlasUiEditor\\AtlasUiEditor\\Atlas.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAP0AAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2026-07-06T09:39:11.36Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "1.json",
+              "DocumentMoniker": "C:\\nowork\\littlepuppy\\convert\\1.json",
+              "RelativeDocumentMoniker": "..\\littlepuppy\\convert\\1.json",
+              "ToolTip": "C:\\nowork\\littlepuppy\\convert\\1.json",
+              "RelativeToolTip": "..\\littlepuppy\\convert\\1.json",
+              "ViewState": "AgIAACgBAAAAAAAAAAD4v0QBAAAaAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2026-07-06T09:01:38.285Z"
             }
           ]
         }

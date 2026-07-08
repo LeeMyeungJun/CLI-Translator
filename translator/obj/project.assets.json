@@ -14,11 +14,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\nowork\\cli_translator\\translator\\translator.csproj",
+      "projectUniqueName": "C:\\nowork\\git_translator\\translator\\translator.csproj",
       "projectName": "translator",
-      "projectPath": "C:\\nowork\\cli_translator\\translator\\translator.csproj",
+      "projectPath": "C:\\nowork\\git_translator\\translator\\translator.csproj",
       "packagesPath": "C:\\Users\\clientmj\\.nuget\\packages\\",
-      "outputPath": "C:\\nowork\\cli_translator\\translator\\obj\\",
+      "outputPath": "C:\\nowork\\git_translator\\translator\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

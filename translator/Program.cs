@@ -57,7 +57,7 @@ namespace CmdTranslator
         {
             this.Text = "CLI 미러링 번역기 (가시 영역 완벽 동기화)"; this.Size = new Size(1000, 750);
             SetupUI(); LoadProcs();
-            timer = new System.Windows.Forms.Timer { Interval = 2500 }; timer.Tick += Update; // ponytail: 1초->2.5초, 요청 빈도를 낮춰 구글 봇 차단 유발을 줄임
+            timer = new System.Windows.Forms.Timer { Interval = 3000 }; timer.Tick += Update; // ponytail: 2.5초->3초, 요청 빈도를 더 낮춰 구글 봇 차단 유발을 줄임
         }
 
         private void SetupUI()
@@ -123,10 +123,12 @@ namespace CmdTranslator
         private INPUT_RECORD CreateKey(char c, int down) => new INPUT_RECORD { EventType = 1, KeyEvent = new KEY_EVENT_RECORD { bKeyDown = down, wRepeatCount = 1, UnicodeChar = c } };
 
         private bool isUpdating = false;
+        private DateTime pauseUntil = DateTime.MinValue; // ponytail: 차단 의심 시 잠깐 쉬는 용도, 고정 10초. 더 정교한 백오프 필요하면 그때 추가
 
         private async void Update(object s, EventArgs e)
         {
             if (isUpdating) return; // ponytail: 이전 갱신이 아직 번역 중이면 겹쳐 돌리지 않음
+            if (DateTime.UtcNow < pauseUntil) return; // ponytail: 최근 번역 실패(차단 의심) 시 요청을 잠깐 멈춰 차단 악화를 막음
             isUpdating = true;
             try
             {
@@ -252,7 +254,7 @@ namespace CmdTranslator
                     sb.Append(segment[0].GetString());
                 return sb.ToString();
             }
-            catch { return text; }
+            catch { pauseUntil = DateTime.UtcNow.AddSeconds(10); return text; }
             finally { translateThrottle.Release(); }
         }
     }
